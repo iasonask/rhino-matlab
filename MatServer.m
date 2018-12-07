@@ -39,7 +39,7 @@ while(true)
             break;
     elseif contains(message,'read')
         ois.close();
-        var_to_read = strsplit(message, '/');
+        var_to_read = strsplit(message, '%');
         var_to_read = var_to_read(2);
         var = string(var_to_read);
         if exist(var)
@@ -51,18 +51,24 @@ while(true)
         
     elseif contains(message,'ex_and_wait')
         ois.close();
-        command = strsplit(message, '/');
+        command = strsplit(message, '%');
         command = command(2);
-        %% do your stuff here
-        eval(string(command));
-        % ...
-        
-        % when finished send signal back 
-        send_response('finished', port_send);
+        try
+            % evaluate Matlab command
+            eval(string(command));
+            % when finished send signal back to the client
+            send_response('finished', port_send);
+        catch ME
+            % catch matlab errors and forward them to the client
+            send_response(ME.message, port_send);
+        end
     else
-        %% do your stuff here
-        eval(message);
-        % ...
+        try
+            % evaluate Matlab command
+            eval(string(command));
+        catch ME
+            disp(ME.message)
+        end
     end
 end
 

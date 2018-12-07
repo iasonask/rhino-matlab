@@ -7,13 +7,18 @@ import RhinoMatlab
 controller = RhinoMatlab.RhinoMatlab()
 
 # start matlab
-controller.start_server()
+controller.start_server(True)
 
-for i in range(0, 100):
+controller.execute_and_wait('iter = 0;')
+
+for i in range(0, 20):
     # executing blocking command in matlab, client will wait until matlab is finished
-    controller.execute_and_wait('A = magic(floor((rand(1)+1)*60));')
+    controller.execute_and_wait('A = magic(floor((rand(1)+1)*100));')
     # read a specific variable (a string representation)
+    controller.execute_and_wait('iter = iter +1;')
     print controller.read_data('A')
+    print controller.read_data('iter')
+
 
 # execute command in a non blocking way
 controller.execute_command('A = 1;')
