@@ -29,19 +29,17 @@ class RhinoMatlab:
     def start_server(self, automation=False):
         print "_________Staring Matlab__________"
         # open matlab, navigate to folder and run controller
-        if automation:
-            auto = ' -automation '
-        else:
-            auto = ' '
+        auto = ' '
         # create matlab subprocess
-        # comm = self.MATLAB_PATH + auto + '-nosplash -r run(\'' + self.M_FILE + '\')'
-        # comm = self.MATLAB_PATH + auto + '-nosplash -sd ' + os.getcwd() \
-        #   + ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'
         if 'nt' in os.name:
+            if automation:
+                auto = ' -automation '
             proc = ''.join([self.MATLAB_PATH, auto, ' -nosplash ', ' -sd ' + os.getcwd(),
-                   ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'])
+                ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'])
         else:
-            proc = [self.MATLAB_PATH, auto, ' -nosplash ', ' -sd ' + os.getcwd(),
+            if automation:
+                auto = ' -nodesktop '
+            proc = [self.MATLAB_PATH, auto + ' -nosplash ', ' -sd ' + os.getcwd(),
                 ' -r ' + '\'' + self.M_FILE + '(' + str(self.PORT) + ')' + '\'']
 
         subprocess.Popen(proc, stdout=subprocess.PIPE, bufsize=1)
