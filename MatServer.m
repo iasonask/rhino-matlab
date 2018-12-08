@@ -5,10 +5,10 @@ port_send = port_server + 2;
 import java.net.ServerSocket;
 import java.io.*;
 
+server = ServerSocket(port);
+
 % inform python module that Matlab server is ready
 send_response('Matlab ready...', port_send);
-
-server = ServerSocket(port);
 
 % start listening continuously
 while(true)

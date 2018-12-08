@@ -6,7 +6,7 @@ import subprocess
 
 class RhinoMatlab:
     # define parameters, default values
-    MATLAB_PATH = 'matlab.exe'
+    MATLAB_PATH = 'matlab'
     M_FILE = 'MatServer'
     HOST = 'localhost'
     PORT = 30000
@@ -35,9 +35,16 @@ class RhinoMatlab:
             auto = ' '
         # create matlab subprocess
         # comm = self.MATLAB_PATH + auto + '-nosplash -r run(\'' + self.M_FILE + '\')'
-        comm = self.MATLAB_PATH + auto + '-nosplash -sd ' + os.getcwd() \
-            + ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'
-        subprocess.Popen(comm, stdout=subprocess.PIPE, bufsize=1)
+        # comm = self.MATLAB_PATH + auto + '-nosplash -sd ' + os.getcwd() \
+        #   + ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'
+        if 'nt' in os.name:
+            proc = ''.join([self.MATLAB_PATH, auto, ' -nosplash ', ' -sd ' + os.getcwd(),
+                   ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'])
+        else:
+            proc = [self.MATLAB_PATH, auto, ' -nosplash ', ' -sd ' + os.getcwd(),
+                ' -r ' + '\'' + self.M_FILE + '(' + str(self.PORT) + ')' + '\'']
+
+        subprocess.Popen(proc, stdout=subprocess.PIPE, bufsize=1)
         # wait until Matlab is up and ready
         print "waiting for Matlab..."
         print self.receive_data()
@@ -64,7 +71,7 @@ class RhinoMatlab:
         s.connect((self.HOST, self.PORT))
 
         # send command
-        s.sendall(command.encode('utf-8'))
+        s.send(command.encode('utf-8'))
         # close the connection
         s.close()
 
@@ -75,7 +82,7 @@ class RhinoMatlab:
 
         # send command
         com = 'ex_and_wait%' + command
-        s.sendall(com.encode('utf-8'))
+        s.send(com.encode('utf-8'))
         # close the connections
         s.close()
         # wait for matlab to respond after execution
@@ -90,7 +97,7 @@ class RhinoMatlab:
 
         # send command
         com = 'read%' + command
-        s.sendall(com.encode('utf-8'))
+        s.send(com.encode('utf-8'))
         # close the connections
         s.close()
         # return a string representation of the data
