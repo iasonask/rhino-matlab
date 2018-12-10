@@ -16,38 +16,39 @@ class RhinoMatlab:
 
     # class constructor
     def __init__(self, matlab_path=MATLAB_PATH, m_file=M_FILE, host=HOST, port=PORT, port_receive=PORT_RECEIVE):
-        self.MATLAB_PATH = matlab_path
-        self.M_FILE = m_file
-        self.HOST = host
-        self.PORT = port
-        self.PORT_RECEIVE = port_receive
-        print "____Staring Matlab Controller____"
+        self.matlab_path = matlab_path
+        self.m_file = m_file
+        self.host = host
+        self.port = port
+        self.port_receive = port_receive
+        self.matlab_status = False
+        print "____Starting Matlab Controller____"
         # Setup server, Create a socket object
-        RhinoMatlab.s_r.bind((self.HOST, self.PORT_RECEIVE))
+        RhinoMatlab.s_r.bind((self.host, self.port_receive))
         RhinoMatlab.s_r.listen(1)
 
     def start_server(self, automation=False):
-        print "_________Staring Matlab__________"
+        print "_________Starting Matlab__________"
         # open matlab, navigate to folder and run controller
         auto = ' '
         # create matlab subprocess
         if 'nt' in os.name:
             if automation:
                 auto = ' -automation '
-            proc = ''.join([self.MATLAB_PATH, auto, ' -nosplash ', ' -sd ' + os.getcwd(),
-                ' -r ' + self.M_FILE + '(' + str(self.PORT) + ')'])
+            proc = ''.join([self.matlab_path, auto, ' -nosplash ', ' -sd ' + os.getcwd(),
+                ' -r ' + self.m_file + '(' + str(self.port) + ')'])
         else:
             if automation:
                 auto = ' -nodesktop '
-            proc = [self.MATLAB_PATH, auto + ' -nosplash ', ' -sd ' + os.getcwd(),
-                ' -r ' + '\'' + self.M_FILE + '(' + str(self.PORT) + ')' + '\'']
+            proc = [self.matlab_path, auto + ' -nosplash ', ' -sd ' + os.getcwd(),
+                ' -r ' + '\'' + self.m_file + '(' + str(self.port) + ')' + '\'']
 
         subprocess.Popen(proc, stdout=subprocess.PIPE, bufsize=1)
         # wait until Matlab is up and ready
         print "waiting for Matlab..."
         print self.receive_data()
         # Matlab should be ready ...
-        self.MATLAB_STATUS = True
+        self.matlab_status = True
 
     def receive_data(self):
         conn, addr = RhinoMatlab.s_r.accept()
@@ -66,7 +67,7 @@ class RhinoMatlab:
     def execute_command(self, command):
         # Create a socket object
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self.HOST, self.PORT))
+        s.connect((self.host, self.port))
 
         # send command
         s.send(command.encode('utf-8'))
@@ -76,7 +77,7 @@ class RhinoMatlab:
     def execute_and_wait(self, command):
         # Create a socket object
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self.HOST, self.PORT))
+        s.connect((self.host, self.port))
 
         # send command
         com = 'ex_and_wait%' + command
@@ -91,7 +92,7 @@ class RhinoMatlab:
     def read_data(self, command):
         # Create a socket object
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((self.HOST, self.PORT))
+        s.connect((self.host, self.port))
 
         # send command
         com = 'read%' + command
@@ -103,7 +104,7 @@ class RhinoMatlab:
         return self.receive_data()
 
     def disconnect(self, also_exit=False):
-        if self.MATLAB_STATUS:
+        if self.matlab_status:
             if also_exit:
                 print "*_________Exiting Matlab_________*"
                 self.execute_command('close/exit')
